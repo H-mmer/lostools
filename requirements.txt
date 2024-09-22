@@ -1,11 +1,10 @@
-webdriver_manager
-selenium
 aiohttp
-beautifulsoup4
+asyncio
+requests
+prompt_toolkit
 colorama
 rich
-requests
-gitpython
-prompt_toolkit
+selenium
+webdriver-manager
 pyyaml
-Flask
+gitpython

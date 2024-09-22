@@ -320,3 +320,8 @@ You can create your own payload files for different scanners:
  - Be cautious when running scans against websites. Always ensure you have permission to test the target systems.
  - High concurrency levels (large number of threads) can put significant load on your system and network. Adjust the `-t` or `--threads` parameter according to your system's capabilities.
  - The XSS and Open Redirect scanners use Selenium WebDriver, which can consume more resources. Optimize the `threads` parameter if you encounter performance issues.
+
+## Disclaimer
+Lostxlso is intended for educational and ethical hacking purposes only.
+It should only be used to test systems you own or have explicit permission to test.
+Unauthorized use of third-party websites or systems without consent is illegal and unethical.
