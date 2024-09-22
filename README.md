@@ -36,7 +36,8 @@
    ```bash
    git clone https://github.com/yourusername/advanced-vulnerability-scanner.git
    cd advanced-vulnerability-scanner
-  ```
+   ```
+
 
 2. **Install Dependencies**
 
