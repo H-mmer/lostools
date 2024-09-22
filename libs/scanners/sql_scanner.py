@@ -4,140 +4,112 @@ Module for performing SQL Injection scanning.
 
 import os
 import time
-import sys
+import re
 import urllib3
 import requests
 from urllib.parse import quote
 from concurrent.futures import ThreadPoolExecutor, as_completed
-from prompt_toolkit import prompt
-from prompt_toolkit.completion import PathCompleter
 from colorama import Fore, init
 from libs.utils import clear_screen
 from libs.requests_helper import get_random_user_agent
+from libs.argument_parser import get_common_arguments
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 init(autoreset=True)
-
-def get_file_path(prompt_text):
-    completer = PathCompleter()
-    return prompt(prompt_text, completer=completer).strip()
-
-def prompt_for_urls():
-    while True:
-        try:
-            url_input = get_file_path("[?] Enter the path to the input file containing the URLs (or press Enter to input a single URL): ")
-            if url_input:
-                if not os.path.isfile(url_input):
-                    raise FileNotFoundError(f"File not found: {url_input}")
-                with open(url_input) as file:
-                    urls = [line.strip() for line in file if line.strip()]
-                return urls
-            else:
-                single_url = input(Fore.CYAN + "[?] Enter a single URL to scan: ").strip()
-                if single_url:
-                    return [single_url]
-                else:
-                    print(Fore.RED + "[!] You must provide either a file with URLs or a single URL.")
-                    input(Fore.YELLOW + "\n[i] Press Enter to try again...")
-                    clear_screen()
-                    print(Fore.GREEN + "Welcome to the SQL Injection Testing Tool!\n")
-        except Exception as e:
-            print(Fore.RED + f"[!] Error reading input file: {url_input}. Exception: {str(e)}")
-            input(Fore.YELLOW + "[i] Press Enter to try again...")
-            clear_screen()
-            print(Fore.GREEN + "Welcome to the SQL Injection Testing Tool!\n")
-
-def prompt_for_payloads():
-    while True:
-        try:
-            payload_input = get_file_path("[?] Enter the path to the payloads file: ")
-            if not os.path.isfile(payload_input):
-                raise FileNotFoundError(f"File not found: {payload_input}")
-            with open(payload_input) as file:
-                payloads = [line.strip() for line in file if line.strip()]
-            return payloads
-        except Exception as e:
-            print(Fore.RED + f"[!] Error reading payload file: {payload_input}. Exception: {str(e)}")
-            input(Fore.YELLOW + "[i] Press Enter to try again...")
-            clear_screen()
-            print(Fore.GREEN + "Welcome to the SQL Injection Testing Tool!\n")
-
-def print_scan_summary(total_found, total_scanned, start_time):
-    print(f"{Fore.YELLOW}\n[i] Scanning finished.")
-    print(f"{Fore.YELLOW}[i] Total found: {total_found}")
-    print(f"{Fore.YELLOW}[i] Total scanned: {total_scanned}")
-    print(f"{Fore.YELLOW}[i] Time taken: {int(time.time() - start_time)} seconds")
-
-def save_prompt(vulnerable_urls=[]):
-    save_choice = input(f"{Fore.CYAN}\n[?] Do you want to save the vulnerable URLs to a file? (y/n, press Enter for n): ").strip().lower()
-    if save_choice == 'y':
-        output_file = input(f"{Fore.CYAN}[?] Enter the name of the output file (press Enter for 'vulnerable_urls.txt'): ").strip() or 'vulnerable_urls.txt'
-        with open(output_file, 'w') as f:
-            for url in vulnerable_urls:
-                f.write(url + '\n')
-        print(f"{Fore.GREEN}Vulnerable URLs have been saved to {output_file}")
-    else:
-        print(f"{Fore.YELLOW}Vulnerable URLs will not be saved.")
 
 def run_sql_scanner():
     """
     Runs the SQL Injection scanner.
     """
-    clear_screen()
-    print(f"{Fore.GREEN}Welcome to the SQL Injection Testing Tool!\n")
+    parser = get_common_arguments("SQL Injection Scanner")
+    args = parser.parse_args()
 
-    urls = prompt_for_urls()
-    payloads = prompt_for_payloads()
+    # Process URLs
+    if args.url:
+        urls = [args.url]
+    elif args.url_file:
+        with open(args.url_file, 'r') as f:
+            urls = [line.strip() for line in f if line.strip()]
+    else:
+        print(Fore.RED + "[!] No URL provided.")
+        return
 
-    cookie = input("[?] Enter the cookie to include in the GET request (press Enter if none): ").strip() or None
+    # Process Payloads
+    if args.payload:
+        payloads = [args.payload]
+    elif args.payload_file:
+        with open(args.payload_file, 'r') as f:
+            payloads = [line.strip() for line in f if line.strip()]
+    else:
+        print(Fore.RED + "[!] No payload provided.")
+        return
 
-    threads_input = input("[?] Enter the number of concurrent threads (0-10, press Enter for 5): ").strip()
-    threads = int(threads_input) if threads_input.isdigit() and 0 <= int(threads_input) <= 10 else 5
+    # Prepare headers and cookies
+    headers = {'User-Agent': get_random_user_agent()}
+    if args.headers:
+        for header in args.headers:
+            key_value = header.split(':', 1)
+            if len(key_value) == 2:
+                headers[key_value[0].strip()] = key_value[1].strip()
+    cookies = {}
+    if args.cookies:
+        for cookie in args.cookies:
+            key_value = cookie.split('=', 1)
+            if len(key_value) == 2:
+                cookies[key_value[0].strip()] = key_value[1].strip()
 
-    print(f"\n{Fore.YELLOW}[i] Loading, Please Wait...")
-    time.sleep(1)
-    clear_screen()
-    print(f"{Fore.CYAN}[i] Starting scan...")
-
+    # Start scanning
+    print(f"{Fore.CYAN}[i] Starting SQL Injection scan...")
     vulnerable_urls = []
     total_scanned = 0
     start_time = time.time()
 
     def perform_request(url, payload):
-        url_with_payload = f"{url}{payload}"
-        headers = {'User-Agent': get_random_user_agent()}
+        target_url = f"{url}{payload}"
         try:
-            response = requests.get(url_with_payload, headers=headers, cookies={'cookie': cookie} if cookie else None, timeout=5)
-            response_time = response.elapsed.total_seconds()
-            # Logic to determine if the response indicates a vulnerability
-            if response.status_code == 200 and "error" in response.text.lower():
-                print(f"{Fore.GREEN}Vulnerable: {Fore.WHITE}{url_with_payload}")
-                return url_with_payload
+            if args.method == 'GET':
+                response = requests.get(target_url, headers=headers, cookies=cookies, verify=False, timeout=10)
             else:
-                print(f"{Fore.RED}Not Vulnerable: {Fore.WHITE}{url_with_payload}")
-                return None
+                response = requests.post(url, data={payload.strip(): ''}, headers=headers, cookies=cookies, verify=False, timeout=10)
+            # Simple error-based detection
+            if any(error in response.text.lower() for error in ["sql syntax", "warning", "mysql_fetch", "odbc", "mysqli"]):
+                print(Fore.GREEN + f"[+] Vulnerable: {target_url}")
+                return target_url
+            else:
+                print(Fore.RED + f"[-] Not Vulnerable: {target_url}")
         except requests.RequestException as e:
-            print(f"{Fore.RED}[!] Error: {e}")
-            return None
+            print(Fore.RED + f"[!] Error accessing {target_url}: {str(e)}")
+        return None
 
-    if threads <= 1:
+    if args.threads <= 1:
         for url in urls:
             for payload in payloads:
                 total_scanned += 1
-                result = perform_request(url.strip(), payload.strip())
+                result = perform_request(url.strip(), payload)
                 if result:
                     vulnerable_urls.append(result)
     else:
-        with ThreadPoolExecutor(max_workers=threads) as executor:
+        with ThreadPoolExecutor(max_workers=args.threads) as executor:
             futures = []
             for url in urls:
                 for payload in payloads:
                     total_scanned += 1
-                    futures.append(executor.submit(perform_request, url.strip(), payload.strip()))
+                    futures.append(executor.submit(perform_request, url.strip(), payload))
             for future in as_completed(futures):
                 result = future.result()
                 if result:
                     vulnerable_urls.append(result)
 
-    print_scan_summary(len(vulnerable_urls), total_scanned, start_time)
-    save_prompt(vulnerable_urls)
+    # Print summary
+    print(Fore.YELLOW + "\n[i] Scanning finished.")
+    print(Fore.YELLOW + f"[i] Total found: {len(vulnerable_urls)}")
+    print(Fore.YELLOW + f"[i] Total scanned: {total_scanned}")
+    print(Fore.YELLOW + f"[i] Time taken: {int(time.time() - start_time)} seconds")
+
+    # Save results
+    if vulnerable_urls:
+        output_file = 'vulnerable_urls.txt'
+        with open(output_file, 'w') as f:
+            for url in vulnerable_urls:
+                f.write(url + '\n')
+        print(Fore.GREEN + f"Vulnerable URLs have been saved to {output_file}")
