@@ -59,15 +59,18 @@ def run_sql_scanner(urls=None, payloads=None, cookie=None, threads=50, output_fi
                     f.write(url + '\n')
             print(f"{Fore.GREEN}Vulnerable URLs have been saved to {output_file}")
         else:
-            save_choice = input(f"{Fore.CYAN}\n[?] Do you want to save the vulnerable URLs to a file? (y/n, press Enter for n): ").strip().lower()
-            if save_choice == 'y':
-                output_file_name = input(f"{Fore.CYAN}[?] Enter the name of the output file (press Enter for 'vulnerable_urls.txt'): ").strip() or 'vulnerable_urls.txt'
-                with open(output_file_name, 'w') as f:
-                    for url in vulnerable_urls:
-                        f.write(url + '\n')
-                print(f"{Fore.GREEN}Vulnerable URLs have been saved to {output_file_name}")
-            else:
-                print(f"{Fore.YELLOW}Vulnerable URLs will not be saved.")
+            #save_choice = input(f"{Fore.CYAN}\n[?] Do you want to save the vulnerable URLs to a file? (y/n, press Enter for n): ").strip().lower()
+            #if save_choice == 'y':
+            #    output_file_name = input(f"{Fore.CYAN}[?] Enter the name of the output file (press Enter for 'vulnerable_urls.txt'): ").strip() or 'vulnerable_urls.txt'
+            #    with open(output_file_name, 'w') as f:
+            #        for url in vulnerable_urls:
+            #            f.write(url + '\n')
+            #    print(f"{Fore.GREEN}Vulnerable URLs have been saved to {output_file_name}")
+            #else:
+            #    print(f"{Fore.YELLOW}Vulnerable URLs will not be saved.")
+            vulnerable_urls = list(dict.fromkeys(vulnerable_urls))
+            print(f"{Fore.GREEN}Vulnerable URLs:")
+            print('\n'.join(url for url in vulnerable_urls))
 
     def prompt_for_urls():
         while True:

@@ -137,13 +137,16 @@ def run_xss_scanner(urls=None, payloads=None, threads=5, output_file=None):
                 if self.output:
                     self.save_injectables_to_file()
                 else:
-                    save_option = input(f"{Fore.CYAN}[?] Do you want to save the vulnerable URLs to a file? (y/n, press Enter for n): ").strip().lower()
-                    if save_option == 'y':
-                        output_file_name = input(f"{Fore.CYAN}[?] Enter the name of the output file (press Enter for 'vulnerable_urls.txt'): ").strip() or 'vulnerable_urls.txt'
-                        self.output = output_file_name
-                        self.save_injectables_to_file()
-                    else:
-                        print(f"{Fore.YELLOW}Vulnerable URLs will not be saved.")
+                    #save_option = input(f"{Fore.CYAN}[?] Do you want to save the vulnerable URLs to a file? (y/n, press Enter for n): ").strip().lower()
+                    #if save_option == 'y':
+                    #    output_file_name = input(f"{Fore.CYAN}[?] Enter the name of the output file (press Enter for 'vulnerable_urls.txt'): ").strip() or 'vulnerable_urls.txt'
+                    #    self.output = output_file_name
+                    #    self.save_injectables_to_file()
+                    #else:
+                    #    print(f"{Fore.YELLOW}Vulnerable URLs will not be saved.")
+                    vulnerable_urls = list(dict.fromkeys(vulnerable_urls))
+                    print(f"{Fore.GREEN}Vulnerable URLs:")
+                    print('\n'.join(url for url in vulnerable_urls))
             except KeyboardInterrupt:
                 sys.exit(0)
 

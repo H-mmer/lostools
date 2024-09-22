@@ -153,15 +153,18 @@ def run_or_scanner(urls=None, payloads=None, threads=5, output_file=None):
                     f.write(url + '\n')
             print(Fore.GREEN + f"Vulnerable URLs have been saved to {output_file}")
         else:
-            save_choice = input(Fore.CYAN + "\n[?] Do you want to save the vulnerable URLs to a file? (y/n, press Enter for n): ").strip().lower()
-            if save_choice == 'y':
-                output_file_name = input(Fore.CYAN + "Enter the name of the output file (press Enter for 'vulnerable_urls.txt'): ").strip() or 'vulnerable_urls.txt'
-                with open(output_file_name, 'w') as f:
-                    for url in vulnerable_urls:
-                        f.write(url + '\n')
-                print(Fore.GREEN + f"Vulnerable URLs have been saved to {output_file_name}")
-            else:
-                print(Fore.YELLOW + "Vulnerable URLs will not be saved.")
+            #save_choice = input(Fore.CYAN + "\n[?] Do you want to save the vulnerable URLs to a file? (y/n, press Enter for n): ").strip().lower()
+            #if save_choice == 'y':
+            #    output_file_name = input(Fore.CYAN + "Enter the name of the output file (press Enter for 'vulnerable_urls.txt'): ").strip() or 'vulnerable_urls.txt'
+            #    with open(output_file_name, 'w') as f:
+            #        for url in vulnerable_urls:
+            #            f.write(url + '\n')
+            #    print(Fore.GREEN + f"Vulnerable URLs have been saved to {output_file_name}")
+            #else:
+            #    print(Fore.YELLOW + "Vulnerable URLs will not be saved.")
+            vulnerable_urls = list(dict.fromkeys(vulnerable_urls))
+            print(f"{Fore.GREEN}Vulnerable URLs:")
+            print('\n'.join(url for url in vulnerable_urls))
 
     if urls is None or payloads is None:
         clear_screen()

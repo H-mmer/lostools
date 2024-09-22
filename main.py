@@ -126,7 +126,6 @@ def handle_selection(selection, args=None):
     Handles the user's menu selection.
     """
     if selection == '1' or (args and args.scanner == 'lfi'):
-        clear_screen()
         if not args:
             inputs = prompt_for_inputs('lfi')
         else:
@@ -145,7 +144,6 @@ def handle_selection(selection, args=None):
         )
 
     elif selection == '2' or (args and args.scanner == 'or'):
-        clear_screen()
         if not args:
             inputs = prompt_for_inputs('or')
         else:
@@ -164,7 +162,6 @@ def handle_selection(selection, args=None):
         )
 
     elif selection == '3' or (args and args.scanner == 'sqli'):
-        clear_screen()
         if not args:
             inputs = prompt_for_inputs('sqli')
         else:
@@ -184,7 +181,6 @@ def handle_selection(selection, args=None):
         )
 
     elif selection == '4' or (args and args.scanner == 'xss'):
-        clear_screen()
         if not args:
             inputs = prompt_for_inputs('xss')
         else:
@@ -203,11 +199,9 @@ def handle_selection(selection, args=None):
         )
 
     elif selection == '5' or (args and args.scanner == 'update'):
-        clear_screen()
         run_update()
 
     elif selection == '6':
-        clear_screen()
         print_exit_menu()
 
     else:

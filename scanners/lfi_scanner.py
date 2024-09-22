@@ -54,15 +54,18 @@ def run_lfi_scanner(urls=None, payloads=None, threads=50, output_file=None):
                     f.write(url + '\n')
             print(f"{Fore.GREEN}Vulnerable URLs have been saved to {output_file}")
         else:
-            save_choice = input(f"{Fore.CYAN}\n[?] Do you want to save the vulnerable URLs to a file? (y/n, press Enter for n): ").strip().lower()
-            if save_choice == 'y':
-                output_file_name = input(f"{Fore.CYAN}[?] Enter the name of the output file (press Enter for 'vulnerable_urls.txt'): ").strip() or 'vulnerable_urls.txt'
-                with open(output_file_name, 'w') as f:
-                    for url in vulnerable_urls:
-                        f.write(url + '\n')
-                print(f"{Fore.GREEN}Vulnerable URLs have been saved to {output_file_name}")
-            else:
-                print(f"{Fore.YELLOW}Vulnerable URLs will not be saved.")
+            #save_choice = input(f"{Fore.CYAN}\n[?] Do you want to save the vulnerable URLs to a file? (y/n, press Enter for n): ").strip().lower()
+            #if save_choice == 'y':
+            #    output_file_name = input(f"{Fore.CYAN}[?] Enter the name of the output file (press Enter for 'vulnerable_urls.txt'): ").strip() or 'vulnerable_urls.txt'
+            #    with open(output_file_name, 'w') as f:
+            #        for url in vulnerable_urls:
+            #            f.write(url + '\n')
+            #    print(f"{Fore.GREEN}Vulnerable URLs have been saved to {output_file_name}")
+            #else:
+            #    print(f"{Fore.YELLOW}Vulnerable URLs will not be saved.")
+            vulnerable_urls = list(dict.fromkeys(vulnerable_urls))
+            print(f"{Fore.GREEN}Vulnerable URLs:")
+            print('\n'.join(url for url in vulnerable_urls))
 
     def prompt_for_urls():
         while True:
@@ -80,12 +83,10 @@ def run_lfi_scanner(urls=None, payloads=None, threads=50, output_file=None):
                     else:
                         print(Fore.RED + "[!] You must provide either a file with URLs or a single URL.")
                         input(Fore.YELLOW + "\n[i] Press Enter to try again...")
-                        clear_screen()
                         print(Fore.GREEN + "Welcome to the LFI Scanner!\n")
             except Exception as e:
                 print(Fore.RED + f"[!] Error reading input file: {url_input}. Exception: {str(e)}")
                 input(Fore.YELLOW + "[i] Press Enter to try again...")
-                clear_screen()
                 print(Fore.GREEN + "Welcome to the LFI Scanner!\n")
 
     def prompt_for_payloads():
@@ -99,7 +100,6 @@ def run_lfi_scanner(urls=None, payloads=None, threads=50, output_file=None):
             except Exception as e:
                 print(Fore.RED + f"[!] Error reading payload file: {payload_input}. Exception: {str(e)}")
                 input(Fore.YELLOW + "[i] Press Enter to try again...")
-                clear_screen()
                 print(Fore.GREEN + "Welcome to the LFI Scanner!\n")
 
     def print_scan_summary(total_found, total_scanned, start_time):
@@ -128,12 +128,12 @@ def run_lfi_scanner(urls=None, payloads=None, threads=50, output_file=None):
                         for future in asyncio.as_completed(tasks):
                             is_vulnerable, target_url, response_time = await future
                             payload_part = target_url.replace(url, '')
-                            print(Fore.YELLOW + f"\n[i] Scanning with payload: {payload_part}")
+                            #print(Fore.YELLOW + f"\n[i] Scanning with payload: {payload_part}")
                             if is_vulnerable:
                                 print(Fore.GREEN + f"[+] Vulnerable: {Fore.WHITE} {target_url} {Fore.CYAN} - Response Time: {response_time:.2f} seconds")
                                 vulnerable_urls.append(target_url)
-                            else:
-                                print(Fore.RED + f"[-] Not Vulnerable: {Fore.WHITE} {target_url} {Fore.CYAN} - Response Time: {response_time:.2f} seconds")
+                            #else:
+                            #    print(Fore.RED + f"[-] Not Vulnerable: {Fore.WHITE} {target_url} {Fore.CYAN} - Response Time: {response_time:.2f} seconds")
                         tasks = []
 
             if tasks:
@@ -152,9 +152,6 @@ def run_lfi_scanner(urls=None, payloads=None, threads=50, output_file=None):
             return await perform_request(session, url, payload)
 
     if urls is None or payloads is None:
-        clear_screen()
-        time.sleep(1)
-        clear_screen()
         panel = Panel(r"""
     __    __________   _____                                 
    / /   / ____/  _/  / ___/_________ _____  ____  ___  _____
@@ -180,8 +177,6 @@ def run_lfi_scanner(urls=None, payloads=None, threads=50, output_file=None):
         threads = int(max_threads_input) if max_threads_input.isdigit() and 0 <= int(max_threads_input) <= 1000 else 50
 
         print(Fore.YELLOW + "\n[i] Loading, Please Wait...")
-        time.sleep(1)
-        clear_screen()
         print(Fore.CYAN + "[i] Starting scan...\n")
     else:
         if isinstance(urls, str):
