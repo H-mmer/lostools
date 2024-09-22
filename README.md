@@ -1,6 +1,7 @@
-# Advanced Vulnerability Scanner Suite
+![Screenshot (396)](https://github.com/user-attachments/assets/c5da3434-b021-4767-b470-6f3bf48fbb8a)
+# Lostxlso: Multi-Vulnerability Scanner
 
-An advanced, modular vulnerability scanning tool designed for security professionals and enthusiasts. This suite includes scanners for SQL Injection, Cross-Site Scripting (XSS), Open Redirects, and Local File Inclusion (LFI) vulnerabilities. The tool is optimized for speed and can be run interactively or via command-line arguments.
+**Lostxlso** is a powerful and versatile multi-vulnerability scanner designed to detect various web application vulnerabilities, including Local File Inclusion (LFI), Open Redirects (OR), SQL Injection (SQLi), and Cross-Site Scripting (XSS). This tool was created by **AnonKryptiQuz**, **Coffinxp**, **Hexsh1dow**, and **Naho**.
 
 ## Table of Contents
 
@@ -36,6 +37,7 @@ An advanced, modular vulnerability scanning tool designed for security professio
    git clone https://github.com/yourusername/advanced-vulnerability-scanner.git
    cd advanced-vulnerability-scanner
   ```
+
 2. **Install Dependencies**
 
 Ensure you have Python 3.7 or higher installed. Install required packages using `pip`:

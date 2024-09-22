@@ -64,7 +64,7 @@ def print_exit_menu():
     """
     Displays the exit message and exits the program.
     """
-    clear_screen()
+    #clear_screen()
 
     panel = Panel(r"""
  ______               ______
