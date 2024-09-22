@@ -1,210 +1,319 @@
-![Screenshot (396)](https://github.com/user-attachments/assets/c5da3434-b021-4767-b470-6f3bf48fbb8a)
-# Lostxlso: Multi-Vulnerability Scanner
+# Advanced Vulnerability Scanner Suite
 
-**Lostxlso** is a powerful and versatile multi-vulnerability scanner designed to detect various web application vulnerabilities, including Local File Inclusion (LFI), Open Redirects (OR), SQL Injection (SQLi), and Cross-Site Scripting (XSS). This tool was created by **AnonKryptiQuz**, **Coffinxp**, **Hexsh1dow**, and **Naho**.
+An advanced, modular vulnerability scanning tool designed for security professionals and enthusiasts. This suite includes scanners for SQL Injection, Cross-Site Scripting (XSS), Open Redirects, and Local File Inclusion (LFI) vulnerabilities. The tool is optimized for speed and can be run interactively or via command-line arguments.
 
 ## Table of Contents
 
 - [Features](#features)
-- [Requirements](#requirements)
 - [Installation](#installation)
+- [Requirements](#requirements)
 - [Usage](#usage)
-  - [Interactive Menu](#interactive-menu)
-  - [Command-Line Arguments](#command-line-arguments)
-    - [Common Arguments](#common-arguments)
-    - [Examples](#examples)
-- [Customization](#customization)
-- [Chrome Installation Instructions](#chrome-installation-instructions)
-- [Disclaimer](#disclaimer)
+  - [Interactive Mode](#interactive-mode)
+  - [Command-Line Mode](#command-line-mode)
+- [Scanners](#scanners)
+  - [SQL Injection Scanner](#sql-injection-scanner)
+  - [XSS Scanner](#xss-scanner)
+  - [Open Redirect Scanner](#open-redirect-scanner)
+  - [LFI Scanner](#lfi-scanner)
+- [Updater](#updater)
+- [Contributing](#contributing)
+- [License](#license)
 
 ## Features
 
-- **LFI Scanner**: Detect Local File Inclusion vulnerabilities.
-- **OR Scanner**: Identify Open Redirect vulnerabilities.
-- **SQL Scanner**: Detect SQL Injection vulnerabilities.
-- **XSS Scanner**: Identify Cross-Site Scripting vulnerabilities.
-- **Multi-threaded scanning**: Improved performance through multi-threading.
-- **Customizable payloads**: Adjust payloads to suit specific targets.
-- **Success criteria**: Modify success detection criteria for specific use cases.
-- **Command-line interface**: Flexible usage through command-line arguments.
-- **Save vulnerable URLs**: Automatically saves the results of vulnerable URLs to a file.
-
-## Requirements
-
-- **Python 3.x**
-- **Libraries**:
-  - `requests`
-  - `urllib3`
-  - `argparse`
-  - `concurrent.futures`
-  - `colorama`
-  - `prompt_toolkit`
-  - `PyYAML`
-  - `gitpython`
-  - `rich`
-  - `Flask`
-  - `selenium`
-  - `webdriver_manager`
-  - `aiohttp`
-  - `beautifulsoup4`
-
-You can install all required packages using:
-
-```bash
-pip install -r requirements.txt
-```
+- Modular design with separate scanners for different vulnerabilities.
+- Optimized for speed using asynchronous programming and concurrency.
+- Supports both interactive and command-line modes.
+- Accepts both single URLs and lists of URLs from files.
+- Customizable payloads via files or command-line arguments.
+- Outputs results to files for easy analysis.
 
 ## Installation
 
-### Clone the repository
+1. **Clone the Repository**
 
-```bash
-git clone https://github.com/coffinsp/lostools
-cd lostools
-```
-## Set Up the Tool
-Ensure that you have Python 3 installed. Install the required packages:
+   ```bash
+   git clone https://github.com/yourusername/advanced-vulnerability-scanner.git
+   cd advanced-vulnerability-scanner
+  ```
+2. **Install Dependencies**
 
-```bash
-pip install -r requirements.txt
-```
+Ensure you have Python 3.7 or higher installed. Install required packages using `pip`:
+
+   ```bash
+   pip install -r requirements.txt
+   ```
+_Note_: If requirements.txt is not provided, you can install packages manually:
+
+   ```bash
+   pip install aiohttp asyncio requests prompt_toolkit colorama rich selenium webdriver-manager PyYAML gitpython
+   ```
+3. **Set Up WebDriver (For XSS and Open Redirect Scanners)**
+
+The XSS and Open Redirect scanners use Selenium WebDriver. ChromeDriver will be installed automatically via webdriver-manager.
+
+## Requirements
+
+ - Python3.7+
+ - Internet connection for installing dependencies and running scans.
 
 ## Usage
 
-### Interactive Menu
+You can run the tool in two ways:
 
-To run the tool with the interactive menu, simply execute:
-```bash
-python3 lostsec.py
-```
+### Interactive Mode
 
-You'll be presented with a menu to select the desired scanner:
-```bash
+Simply run `lostsec.py` without any arguments:
+   ```bash
+   python3 lostsec.py
+   ```
+This will launch an interactive menu where you can select the scanner and provide inputs as prompted.
 
-.____                   __ ____  ___.__
-|    |    ____  _______/  |\   \/  /|  |   __________
-|    |   /  _ \/  ___/\   __\     / |  |  /  ___/  _ \
-|    |__(  <_> )___ \  |  | /     \ |  |__\___ (  <_> )
-|_______ \____/____  > |__|/___/\  \|____/____  >____/
-\/         \/            \_/          \/
+### Command-Line Mode
+Use command-line arguments to run the scanners directly:
+   ```bash
+   python3 main.py [options]
+   ```
+Use the `-h` or `--help` flag to see available options:
 
-───────────────────────────────────────────────────────────────
-┌─────────────────────────────────────────────────────────────┐
-│1] LFi Scanner                                             │
-│2] OR Scanner                                              │
-│3] SQLi Scanner                                            │
-│4] XSS Scanner                                             │
-│5] tool Update                                             │
-│6] Exit                                                    │
-└─────────────────────────────────────────────────────────────┘
-───────────────────────────────────────────────────────────────
-Created by: Coffinxp, HexSh1dow, Naho and AnonKryptiQuz
-───────────────────────────────────────────────────────────────
-Select an option by entering the corresponding number:
-───────────────────────────────────────────────────────────────
-Select an option (1-6):
-```
-Follow the on-screen prompts to input URLs, payloads, and other options.
+   ```bash
+   python3 main.py -h
+   ```
 
-### Command-Line Arguments
+### Available Command-Line Arguments:
 
-Lostxlso can also be used entirely via command-line arguments for automation and scripting purposes.
-#### General Syntax
-```bash
-python lostsec.py -s [scanner] [options]
-```
-#### Available scanners
- - `xss`
- - `lfi`
- - `sql`
- - `or`
-
-#### Common Arguments
- - `-s`, `--scanner`: (Required) Specify the scanner to use (lfi, sql, xss, or, update).
- - `-u`, `--url`: Single URL to scan.
- - `-U`, `--url-file`: File containing URLs to scan (one per line).
- - `-p`, `--payload`: Single payload to use.
- - `-P`, `--payload-file`: File containing payloads to use (one per line).
+ - `-s`, `--scanner`: Select scanner to run (`lfi`, `or`, `sqli`, `xss`, `update`).
+ - `-u`, `--urls`: URLs to scan (space-separated).
+ - `-uf`, `--url-file`: File containing URLs to scan.
+ - `-p`, `--payloads`: Payloads to use (space-separated).
+ - `-pf`, `--payload-file`: File containing payloads to use.
+ - `-c`, `--cookie`: Cookie to include in requests (for SQLi scanner).
  - `-t`, `--threads`: Number of concurrent threads (default: 5).
- - `-c`, `--cookies`: Cookies to include in the request. Can be used multiple times or comma-separated.
- - `-H`, `--headers`: Headers to include in the request. Can be used multiple times or comma-separated.
- - `-X`, `--method`: HTTP method to use (GET, POST; default: GET).
+ - `-o`, `--output-file`: Output file to save vulnerable URLs.
 
-#### LFI Scanner Specific Option
- - `--success-pattern`: Comma-separated patterns indicating a successful LFI (default: `root:x:0:`).
+### Examples:
 
-### Examples
+**SQL Injection Scanner:**
 
-#### Run LFI Scanner with a Single URL and Payload
-```bash
-python lostsec.py -s lfi -u http://example.com/page.php?file= -p ../../etc/passwd
-```
-#### Run SQL Injection Scanner with URL File and Payload File, Using 10 Threads
-```bash
-python lostsec.py -s sql -U urls.txt -P payloads.txt -t 10
-```
-#### Run XSS Scanner with Custom Headers and Cookies
-```bash
-python lostsec.py -s xss -u http://example.com/search?q= -p "<script>alert(1)</script>" -H "Referer: http://google.com" -c "sessionid=abc123"
-```
-#### Run Open Redirect Scanner Using POST Method
-```bash
-python lostsec.py -s or -u http://example.com/redirect?url= -p "http://malicious.com" -X POST
-```
-#### Update the Tool to the Latest Version
+   ```bash
+   python3 main.py -s sqli -uf urls.txt -pf sqli_payloads.txt -t 50 -o sqli_results.txt
+   ```
+**XSS Scanner:**
 
-```bash
-python lostsec.py -s update
-```
-After updating, you can run the tool again to use the updated version.
+   ```bash
+   python3 main.py -s xss -u "http://example.com/search?q=" -p "<script>alert(1)</script>" -t 10 -o xss_results.txt
+   ```
+**Open Redirect Scanner:**
 
-### Display Help Information
+   ```bash
+   python3 main.py -s or -uf urls.txt -pf or_payloads.txt -t 20 -o or_results.txt
+   ```
+**LFI Scanner:**
 
-To display help information and see all available options, run:
+   ```bash
+   python3 main.py -s lfi -uf urls.txt -pf lfi_payloads.txt -t 50 -o lfi_results.txt
+   ```
 
-```bash
-python lostsec.py -h
-```
-Or for a specific scanner:
-```bash
-python lostsec.py -s lfi -h
-```
+## Scanners
 
-## Input Information
+### SQL Injection Scanner
 
- - **Input URL/File**: Provide a single URL using `-u` or a file containing URLs using `-U`.
- - **Payload**: Provide a single payload using `-p` or a file containing payloads using `-P`.
- - **Success Criteria**: For LFI Scanner, you can define patterns that indicate a successful exploitation attempt using `--success-patterns`.
- - **Concurrent Threads**: Set the number of threads using `-t` to optimize performance.
- - **Cookies and Headers**: Use `-c` and `-H` to include cookies and headers in the requests.
+**Description:**
 
-## Customization
+Detects SQL Injection vulnerabilities by appending payloads to URLs and measuring response times. If a significant delay is observed, the URL is considered vulnerable.
 
-Lostxlso allows for various levels of customization to fit your specific testing needs:
+**Usage:**
 
- - **Custom Payloads**: Create or modify payload files to suit specific vulnerability types or applications. Payloads should be tailored to the vulnerability being tested.
- - **Success Criteria**: Adjust the success criteria patterns in the tool to identify successful exploitation attempts more accurately.
- - **Concurrent Threads**: Control the number of concurrent threads used during the scan to optimize performance based on system resources.
+Interactive:
 
-## Chrome Installation Instructions
+   ```bash
+   python3 main.py
+   # Select option 3 for SQLi Scanner
+   ```
 
-Some of the scanners may require Chrome to be installed for Selenium dependencies.
- 1. Launch Terminal
- 2. Downlaod the Google Chrome `.deb` file:
-    ```bash
-    wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
-    ```
- 3. Install the downloaded Google Chrome `.deb` file:
-    ```bash
-    sudo dpkg -i google-chrome-stable_current_amd64.deb
-    ```
- 4. If you encounter errors during the installation, run:
-    ```bash
-    sudo apt -f install
-    sudo dpkg -i google-chrome-stable_current_amd64.deb
-    ```
- 5. Google Chrome should now be installed.
+Command-Line:
 
-## Disclaimer
+   ```bash
+   python3 main.py -s sqli -uf urls.txt -pf sqli_payloads.txt -t 50 -o sqli_results.txt
+   ```
 
-Lostxlso is intended for educational and ethical hacking purposes only. It should only be used to test systems you own or have explicit permission to test. Unauthorized use of third-party websites or systems without consent is illegal and unethical.
+**Options:**
+
+ - `-c`, `--cookie`: Include a cookie in the requests.
+
+### XSS Scanner
+
+**Description:**
+
+Detects Cross-Site Scripting vulnerabilities by injecting payloads into URL parameters and checking for JavaScript execution using Selenium WebDriver.
+
+**Usage:**
+
+Interactive:
+
+   ```bash
+   python3 main.py
+   # Select option 4 for XSS Scanner
+   ```
+
+Command-Line:
+
+   ```bash
+   python3 main.py -s xss -uf urls.txt -pf xss_payloads.txt -t 10 -o xss_results.txt
+   ```
+
+### Open Redirect Scanner
+
+**Description:**
+
+Identifies Open Redirect vulnerabilities by appending payloads that attempt to redirect the user to an external site.
+
+**Usage:**
+
+Interactive:
+
+   ```bash
+   python3 main.py
+   # Select option 2 for OR Scanner
+   ```
+Command-Line:
+
+   ```bash
+   python3 main.py -s or -uf urls.txt -pf or_payloads.txt -t 20 -o or_results.txt
+   ```
+
+### LFI Scanner
+
+**Description:**
+
+Checks for Local File Inclusion vulnerabilities by injecting file paths into URL parameters and looking for specific content patterns in the response.
+
+**Usage:**
+
+Interactive:
+
+   ```bash
+   python3 main.py
+   # Select option 1 for LFi Scanner
+   ```
+Command-Line:
+
+   ```bash
+   python3 main.py -s lfi -uf urls.txt -pf lfi_payloads.txt -t 50 -o lfi_results.txt
+   ```
+
+**Options:**
+
+ - During interactive mode, you can specify success criteria patterns for more accurate detection.
+
+
+### Updater
+
+The updater module checks for updates from the remote repository and updates the tool if a newer version is available.
+
+**Usage:**
+
+Interactive:
+
+   ```bash
+   python3 main.py
+   # Select option 5 for tool Update
+   ```
+Command-Line:
+
+   ```bash
+   python3 main.py -s update
+   ```
+_Note_: Ensure that `config.yml` is properly configured with the repository information.
+
+
+### Contributing
+Contributions are welcome! Please follow these steps:
+
+ 1. Fork the repository.
+
+ 2. Create a new branch:
+
+   ```bash
+   git checkout -b feature/your-feature-name
+   ```
+
+ 3. Make your changes and commit them:
+
+   ```bash
+   git commit -am 'Add new feature'
+   ```
+ 4. Push to the branch:
+
+   ```bash
+   git push origin feature/your-feature-name
+   ```
+ 5. Open a Pull Request.
+
+### License
+This project is licensed under the MIT License. See the LICENSE file for details.
+
+
+
+## Additional Documentation
+
+### Project Structure
+   ```css
+   lostools/
+   ├── __init__.py
+   ├── lostsec.py
+   ├── color.py
+   ├── utils.py
+   ├── scanners/
+   │   ├── __init__.py
+   │   ├── sql_scanner.py
+   │   ├── xss_scanner.py
+   │   ├── or_scanner.py
+   │   └── lfi_scanner.py
+   ├── updater.py
+   └── config.yml
+   ```
+
+### Modules Description
+ - **main.py**: Entry point of the application. Handles interactive menu and command-line arguments.
+ - **color.py**: Defines color codes for terminal output.
+ - **utils.py**: Contains utility functions and constants used across modules.
+ - **scanners/**: Package containing scanner modules.
+   - **sql_scanner.py**: Module for SQL Injection scanning functionality.
+   - **xss_scanner.py**: Module for Cross-Site Scripting scanning functionality.
+   - **or_scanner.py**: Module for Open Redirect scanning functionality.
+   - **lfi_scanner.py**: Module for Local File Inclusion scanning functionality.
+ - **updater.py**: Module for updating the tool from a remote repository.
+ - **config.yml**: Configuration file containing repository information for updates.
+
+### Dependencies
+ - **Python Packages:**
+   - aiohttp
+   - asyncio
+   - requests
+   - prompt_toolkit
+   - colorama
+   - rich
+   - selenium
+   - webdriver-manager
+   - PyYAML
+   - gitpython
+ - **External Tools:**
+   - ChromeDriver (managed automatically via `webdriver-manager`).
+
+### Adding Custom Payloads
+You can create your own payload files for different scanners:
+
+ 1. Create a new text file (e.g., custom_payloads.txt).
+
+ 2. Add your payloads, one per line.
+
+ 3. Use the `-pf` or `--payload-file` option to specify your custom payload file:
+   ```bash
+   python3 main.py -s xss -uf urls.txt -pf custom_payloads.txt -t 10 -o xss_results.txt
+   ```
+
+### Notes
+ - Be cautious when running scans against websites. Always ensure you have permission to test the target systems.
+ - High concurrency levels (large number of threads) can put significant load on your system and network. Adjust the `-t` or `--threads` parameter according to your system's capabilities.
+ - The XSS and Open Redirect scanners use Selenium WebDriver, which can consume more resources. Optimize the `threads` parameter if you encounter performance issues.
