@@ -1,3 +1,4 @@
+playwright
 aiohttp
 asyncio
 requests

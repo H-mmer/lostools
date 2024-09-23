@@ -13,6 +13,8 @@ from rich import print as rich_print
 from rich.panel import Panel
 from utils import clear_screen
 from color import Color
+from distro import id as Distro
+from scanners.xss_scanner_selenium import run_xss_scanner_selenium
 from scanners.sql_scanner import run_sql_scanner
 from scanners.xss_scanner import run_xss_scanner
 from scanners.or_scanner import run_or_scanner
@@ -132,7 +134,7 @@ def handle_selection(selection, args=None):
             inputs = {
                 'urls': args.urls,
                 'payloads': args.payloads,
-                'threads': args.threads or 5,
+                'threads': args.threads or 50,
                 'output_file': args.output_file,
                 'cookie': None
             }
@@ -181,22 +183,38 @@ def handle_selection(selection, args=None):
         )
 
     elif selection == '4' or (args and args.scanner == 'xss'):
-        if not args:
-            inputs = prompt_for_inputs('xss')
+        if Distro == 'kali': ## This assumes you haven't installed playwright on kali
+                if not args:
+                    inputs = prompt_for_inputs('xss')
+                else:
+                    inputs = {
+                        'urls': args.urls,
+                        'payloads': args.payloads,
+                        'threads': args.threads or 5,
+                        'output_file': args.output_file
+                    }
+                run_xss_scanner_selenium(
+                    urls=inputs['urls'],
+                    payloads=inputs['payloads'],
+                    threads=inputs['threads'],
+                    output_file=inputs['output_file']
+                )
         else:
-            inputs = {
-                'urls': args.urls,
-                'payloads': args.payloads,
-                'threads': args.threads or 5,
-                'output_file': args.output_file,
-                'cookie': None
-            }
-        run_xss_scanner(
-            urls=inputs['urls'],
-            payloads=inputs['payloads'],
-            threads=inputs['threads'],
-            output_file=inputs['output_file']
-        )
+                if not args:
+                    inputs = prompt_for_inputs('xss')
+                else:
+                    inputs = {
+                        'urls': args.urls,
+                        'payloads': args.payloads,
+                        'threads': args.threads or 5,
+                        'output_file': args.output_file
+                    }
+                run_xss_scanner(
+                    urls=inputs['urls'],
+                    payloads=inputs['payloads'],
+                    threads=inputs['threads'],
+                    output_file=inputs['output_file']
+                )
 
     elif selection == '5' or (args and args.scanner == 'update'):
         run_update()
@@ -211,8 +229,8 @@ def main():
     """
     Main function that runs the program.
     """
-    #import urllib3
-    #urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+    import urllib3
+    urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
     #clear_screen()
     #time.sleep(1)
     #clear_screen()

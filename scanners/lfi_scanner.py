@@ -140,12 +140,12 @@ def run_lfi_scanner(urls=None, payloads=None, threads=50, output_file=None):
                 for future in asyncio.as_completed(tasks):
                     is_vulnerable, target_url, response_time = await future
                     payload_part = target_url.replace(url, '')
-                    print(Fore.YELLOW + f"\n[i] Scanning with payload: {payload_part}")
+                    #print(Fore.YELLOW + f"\n[i] Scanning with payload: {payload_part}")
                     if is_vulnerable:
                         print(Fore.GREEN + f"[+] Vulnerable: {Fore.WHITE} {target_url} {Fore.CYAN} - Response Time: {response_time:.2f} seconds")
                         vulnerable_urls.append(target_url)
-                    else:
-                        print(Fore.RED + f"[-] Not Vulnerable: {Fore.WHITE} {target_url} {Fore.CYAN} - Response Time: {response_time:.2f} seconds")
+                    #else:
+                    #    print(Fore.RED + f"[-] Not Vulnerable: {Fore.WHITE} {target_url} {Fore.CYAN} - Response Time: {response_time:.2f} seconds")
 
     async def limited_perform_request(sem, session, url, payload):
         async with sem:

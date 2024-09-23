@@ -17,53 +17,15 @@ from utils import get_random_user_agent, clear_screen, get_file_path, read_file_
 from color import Color
 from rich import print as rich_print
 from rich.panel import Panel
-from multiprocessing import Pool, cpu_count
+from selenium import webdriver
+from selenium.webdriver.chrome.options import Options
+from selenium.common.exceptions import WebDriverException
+from webdriver_manager.chrome import ChromeDriverManager
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.chrome.service import Service  # Import Service
 
-from playwright.sync_api import sync_playwright
-
-def confirm_vulnerabilities_worker(args):
-    """
-    Worker function for confirming vulnerabilities.
-    Must be at the module level for multiprocessing.
-    """
-    urls_payloads, timeout = args
-    confirmed_urls = []
-    import logging
-    logging.getLogger('playwright').setLevel(logging.CRITICAL)
-    try:
-        with sync_playwright() as p:
-            browser = p.chromium.launch(headless=True)
-            for url, payload in urls_payloads:
-                page = browser.new_page()
-                try:
-                    dialog_triggered = False
-
-                    def on_dialog(dialog):
-                        nonlocal dialog_triggered
-                        dialog_triggered = True
-                        try:
-                            dialog.accept()
-                        except Exception as e:
-                            logging.error(f"Error accepting dialog: {e}")
-
-                    page.once('dialog', on_dialog)
-                    page.goto(url, timeout=timeout * 1000, wait_until='load')
-                    page.wait_for_timeout(1000)  # Wait for 1 second
-                    if dialog_triggered:
-                        print(Color.GREEN + f"[+] XSS Vulnerability Confirmed: {url}")
-                        confirmed_urls.append(url)
-                    else:
-                        print(Color.YELLOW + f"[!] Potential XSS not confirmed: {url}")
-                except Exception as e:
-                    logging.error(f"Error confirming XSS on {url}: {str(e)}")
-                finally:
-                    page.close()
-            browser.close()
-    except Exception as e:
-        logging.error(f"Error in Playwright worker: {str(e)}")
-    return confirmed_urls
-
-def run_xss_scanner(urls=None, payloads=None, threads=5, output_file=None):
+def run_xss_scanner_selenium(urls=None, payloads=None, threads=5, output_file=None):
     """
     Runs the XSS scanner.
     Accepts optional arguments for URLs, payloads, number of threads, and output file.
@@ -71,6 +33,7 @@ def run_xss_scanner(urls=None, payloads=None, threads=5, output_file=None):
     """
     init(autoreset=True)
     logging.getLogger('aiohttp').setLevel(logging.CRITICAL)
+    logging.getLogger('WDM').setLevel(logging.ERROR)
     logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
     class MassScanner:
@@ -141,6 +104,49 @@ def run_xss_scanner(urls=None, payloads=None, threads=5, output_file=None):
                 if tasks:
                     await asyncio.gather(*tasks)
 
+        async def confirm_vulnerability(self, sem, driver, url, payload):
+            async with sem:
+                try:
+                    driver.get(url)
+                    WebDriverWait(driver, 0.03).until(EC.alert_is_present())
+                    try:
+                        alert = driver.switch_to.alert
+                        alert_text = alert.text
+                        alert.accept()
+                        print(Color.GREEN + f"[+] XSS Vulnerability Confirmed: {url}")
+                        self.confirmed_vulnerable_urls.append(url)
+                    except:
+                        print(Color.YELLOW + f"[!] Potential XSS not confirmed: {url}")
+                except Exception as e:
+                    logging.error(f"Error confirming XSS on {url}: {str(e)}")
+
+        async def confirm_vulnerabilities(self):
+            # Limit the number of concurrent Selenium instances
+            sem = asyncio.Semaphore(min(self.concurrency, 5))  # Limit to 5 Selenium instances
+            chrome_options = Options()
+            chrome_options.add_argument("--headless")
+            chrome_options.add_argument("--no-sandbox")
+            chrome_options.add_argument("--disable-gpu")
+            chrome_options.add_argument("--disable-dev-shm-usage")
+            chrome_options.add_argument("--log-level=3")
+            chrome_options.add_argument('--disable-extensions')
+            chrome_options.add_argument('--disable-infobars')
+            chrome_options.add_argument('--remote-debugging-port=9222')
+            chrome_options.add_experimental_option('excludeSwitches', ['enable-logging'])
+            driver_path = ChromeDriverManager().install()
+
+            # Create a fixed number of WebDriver instances
+            drivers = [webdriver.Chrome(service=Service(driver_path), options=chrome_options) for _ in range(sem._value)]
+            tasks = []
+            for idx, (url, payload) in enumerate(self.potential_vulnerable_urls):
+                driver = drivers[idx % len(drivers)]
+                task = asyncio.create_task(self.confirm_vulnerability(sem, driver, url, payload))
+                tasks.append(task)
+            await asyncio.gather(*tasks)
+            # Quit all drivers
+            for driver in drivers:
+                driver.quit()
+
         def save_vulnerable_urls(self):
             if self.confirmed_vulnerable_urls:
                 with open(self.output, "w") as output_file:
@@ -158,18 +164,7 @@ def run_xss_scanner(urls=None, payloads=None, threads=5, output_file=None):
 
             if self.potential_vulnerable_urls:
                 print(f"{Fore.CYAN}[i] Confirming potential vulnerabilities...")
-                # Multiprocessing confirmation
-                if cpu_count() > 4:
-                    num_processes = cpu_count()
-                else:
-                    num_processes = 4
-                chunk_size = max(len(self.potential_vulnerable_urls) // num_processes, 1)
-                chunks = [self.potential_vulnerable_urls[i:i + chunk_size] for i in range(0, len(self.potential_vulnerable_urls), chunk_size)]
-                pool_args = [(chunk, self.timeout) for chunk in chunks]
-                with Pool(processes=num_processes) as pool:
-                    results = pool.map(confirm_vulnerabilities_worker, pool_args)
-                for confirmed_urls in results:
-                    self.confirmed_vulnerable_urls.extend(confirmed_urls)
+                asyncio.run(self.confirm_vulnerabilities())
                 print(f"{Fore.YELLOW}\n[i] Confirmation finished.")
                 print(f"{Fore.GREEN}[i] Confirmed vulnerabilities: {len(self.confirmed_vulnerable_urls)}")
             else:
@@ -245,8 +240,8 @@ def run_xss_scanner(urls=None, payloads=None, threads=5, output_file=None):
         concurrency_input = input("\n[?] Enter the number of concurrent threads (1-1000, press Enter for 50): ").strip()
         concurrency = int(concurrency_input) if concurrency_input.isdigit() and 1 <= int(concurrency_input) <= 1000 else 50
 
-        timeout_input = input("[?] Enter the request timeout in seconds (press Enter for 10): ").strip()
-        timeout = float(timeout_input) if timeout_input else 10.0
+        timeout_input = input("[?] Enter the request timeout in seconds (press Enter for 3): ").strip()
+        timeout = float(timeout_input) if timeout_input else 3.0
 
         print(f"\n{Fore.YELLOW}[i] Loading, Please Wait...")
         print(f"{Fore.CYAN}[i] Starting scan...")
@@ -268,7 +263,7 @@ def run_xss_scanner(urls=None, payloads=None, threads=5, output_file=None):
             print(f"{Fore.RED}[!] No payloads provided.")
             sys.exit(1)
         concurrency = threads
-        timeout = 10.0  # Default timeout if not specified
+        timeout = 3.0  # Default timeout if not specified
 
     scanner = MassScanner(
         urls=urls,
