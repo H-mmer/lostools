@@ -9,6 +9,7 @@ import sys
 import subprocess
 import random
 import requests
+import psutil
 from colorama import init
 
 # Initialize colorama
@@ -82,3 +83,20 @@ def read_file_lines(file_path):
     with open(file_path, 'r') as file:
         for line in file:
             yield line.strip()
+
+def get_optimal_threads(max_threads=50):
+  """
+  Dynamically determines the optimal number of threads based on system resources.
+  """
+  cpu_count = psutil.cpu_count(logical=True)
+  available_memory = psutil.virtual_memory().available / (1024 ** 2)  # in MB
+
+  # Simple heuristic:
+  # - Use half the CPU cores if memory is limited
+  # - Otherwise, use up to max_threads, but not exceeding CPU cores
+  if available_memory < 512:  # Adjust threshold as needed
+    optimal_threads = max(1, cpu_count // 2)
+  else:
+    optimal_threads = min(max_threads, cpu_count)
+
+  return optimal_threads

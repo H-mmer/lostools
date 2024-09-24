@@ -16,7 +16,7 @@ from urllib.parse import quote
 from colorama import Fore, Style, init
 from rich import print as rich_print
 from rich.panel import Panel
-from utils import get_random_user_agent, clear_screen, get_file_path, read_file_lines
+from utils import get_random_user_agent, clear_screen, get_file_path, read_file_lines, get_optimal_threads
 from color import Color
 
 def run_sql_scanner(urls=None, payloads=None, cookie=None, threads=50, output_file=None):
@@ -119,6 +119,7 @@ def run_sql_scanner(urls=None, payloads=None, cookie=None, threads=50, output_fi
     async def main_async():
         nonlocal vulnerable_urls, total_scanned
         timeout = aiohttp.ClientTimeout(total=30)
+        #optimal_threads = get_optimal_threads(threads)
         connector = aiohttp.TCPConnector(ssl=False, limit_per_host=threads)
         sem = asyncio.Semaphore(threads)
 

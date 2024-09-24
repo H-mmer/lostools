@@ -16,7 +16,7 @@ from urllib.parse import quote
 from colorama import Fore, Style, init
 from rich import print as rich_print
 from rich.panel import Panel
-from utils import get_random_user_agent, clear_screen, get_file_path, read_file_lines
+from utils import get_random_user_agent, clear_screen, get_file_path, read_file_lines, get_optimal_threads
 from color import Color
 
 def run_lfi_scanner(urls=None, payloads=None, threads=50, output_file=None):
@@ -38,7 +38,7 @@ def run_lfi_scanner(urls=None, payloads=None, threads=50, output_file=None):
         }
 
         try:
-            async with session.get(target_url, headers=headers) as response:
+            async with session.head(target_url, headers=headers) as response:
                 content = await response.text()
                 response_time = time.time() - start_time
                 is_vulnerable = any(criteria in content for criteria in success_criteria)
